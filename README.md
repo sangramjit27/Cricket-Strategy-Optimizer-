@@ -1,112 +1,39 @@
-import random
-import streamlit as st
-import pandas as pd
-import sys
-import os
 
-# Add parent directory to path to import model modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Cricket Strategy Optimizer
 
-from model.q_learning import BattingRL
-from model.game_theory import get_nash_equilibrium
+## Overview
 
-# Load IPL data
-df = pd.read_csv('../data/ipl_ball_by_ball.csv')
+Cricket Strategy Optimizer is an AI and data-driven system designed to assist teams and analysts in **optimizing cricket strategies**. By leveraging historical match data, player statistics, probabilistic and situational analysis, the project demonstrates how machine learning and statistical modeling can inform tactical decisions, from batting order to bowling plans.This system focuses on pre-match and post-match analysis, ensuring it remains an ethical tool for performance enhancement without providing live recommendations during matches.
 
-st.set_page_config(page_title="Cricket Strategy Optimiser", layout="wide")
-st.title("🏏 Cricket Strategy Optimiser")
+This repository contains a **sanitized academic version** for educational purposes. No proprietary or live match data is included.
 
-# Player selection (standard panel)
-players = df['Batter'].unique()
-bowlers = df['Bowler'].unique()
+## Key Features
 
-player = st.selectbox("Select Batsman", players)
-opponent = st.selectbox("Select Bowler", bowlers)
+* Analysis of player performance and match statistics
+* Optimization of batting orders and bowling strategies
+* Match scenario simulations for tactical insights
+* Modular and extensible framework for further experimentation
 
-# Q-learning model
-rl_model = BattingRL()
-state = (hash(player) + hash(opponent)) % 100
-strategy = rl_model.recommend(state)
+## Technologies Used
 
-st.markdown(f"###  Recommended Batting Strategy: **{strategy}**")
+* Python
+* Machine Learning (scikit-learn, XGBoost)
+* Data Analysis and Visualization (Pandas, NumPy, Matplotlib, Seaborn)
+* Optional: Jupyter Notebooks for interactive analysis
 
-# Game Theory Payoff Matrix
-bowler_labels, batsman_labels, payoff_matrix, equilibria = get_nash_equilibrium(player, opponent)
-st.markdown("###  Game Theory Payoff Matrix (Bowler's Perspective)")
-payoff_df = pd.DataFrame(payoff_matrix, index=bowler_labels, columns=batsman_labels)
-st.dataframe(payoff_df.style.background_gradient(cmap='Blues'), use_container_width=True)
+## Project Structure
 
-# Game Theory Result
-st.markdown("###  Nash Equilibrium Strategy Mixes")
-if equilibria:
-    for eq in equilibria:
-        st.write("**Bowler Strategy Mix:**")
-        for i, prob in enumerate(eq[0]):
-            st.write(f"- {bowler_labels[i]}: {round(prob, 2)}")
-        st.write("**Batsman Strategy Mix:**")
-        for j, prob in enumerate(eq[1]):
-            st.write(f"- {batsman_labels[j]}: {round(prob, 2)}")
-else:
-    st.warning("No Nash Equilibrium found.")
+* `src/` – source models for analysis and strategy optimization demo
+* `docs/` – project documentation dataset, results and requirements.txt
 
-# ------------------------------------------
-# 🎮 Real Match Simulation Mode (Ball-by-Ball)
-# ------------------------------------------
-st.markdown("---")
-st.subheader("🏏 Full Match Simulation (Ball-by-Ball AI Strategies)")
+## Confidentiality Notice
 
-# Filter to one match (first match in dataset)
-match_id = df['Match ID'].unique()[0]
-match_data = df[df['Match ID'] == match_id].reset_index(drop=True)
+All datasets, analysis methods, and implementations are **generalized** and intended strictly for educational and demonstration purposes.
 
-# Setup session state to track match
-if "ball_index" not in st.session_state:
-    st.session_state.ball_index = 0
-if "runs" not in st.session_state:
-    st.session_state.runs = 0
-if "wickets" not in st.session_state:
-    st.session_state.wickets = 0
+## Author
 
-# Simulate one delivery at a time
-if st.button("▶️ Simulate Next Ball"):
-    if st.session_state.ball_index < len(match_data):
-        ball = match_data.iloc[st.session_state.ball_index]
+Sangramjit Sarkar
+B.Tech Computer Science Engineering
 
-        # Show match details
-        st.markdown(f"**Over:** {ball['Over']}.{ball['Ball']}")
-        st.markdown(f"**Batsman:** {ball['Batter']}  |  **Bowler:** {ball['Bowler']}")
-        st.markdown(f"**Runs Scored:** {ball['Batter Runs']}")
 
-        # Update match state
-        st.session_state.runs += ball['Batter Runs']
-        if pd.notna(ball.get('dismissal_kind')) and ball['dismissal_kind'] != 'retired hurt':
-            st.session_state.wickets += 1
-        st.markdown(f"**Live Score:** {st.session_state.runs}/{st.session_state.wickets}")
-
-        # AI Batting Strategy (Q-Learning)
-        state = (int(ball['Over']) + hash(ball['Batter']) + hash(ball['Bowler'])) % 100
-        ai_strategy = rl_model.recommend(state)
-        st.markdown(f"🧠 **Recommended Batting Strategy:** {ai_strategy}")
-
-        # Game Theory Strategy (Nash Equilibrium)
-        b_labels, bt_labels, p_matrix, eqs = get_nash_equilibrium(ball['Batter'], ball['Bowler'])
-        sim_df = pd.DataFrame(p_matrix, index=b_labels, columns=bt_labels)
-        st.markdown(" **Payoff Matrix (This Ball):**")
-        st.dataframe(sim_df.style.background_gradient(cmap='YlOrBr'))
-
-        if eqs:
-            st.markdown(" **Nash Equilibrium for This Ball:**")
-            for eq in eqs:
-                st.write("**Bowler Strategy Mix:**")
-                for i, prob in enumerate(eq[0]):
-                    st.write(f"- {b_labels[i]}: {round(prob, 2)}")
-                st.write("**Batsman Strategy Mix:**")
-                for j, prob in enumerate(eq[1]):
-                    st.write(f"- {bt_labels[j]}: {round(prob, 2)}")
-        else:
-            st.warning("No equilibrium found for this ball.")
-
-        # Move to next ball
-        st.session_state.ball_index += 1
-    else:
-        st.success(" Match Simulation Complete!")
+Do you want me to do that next?
