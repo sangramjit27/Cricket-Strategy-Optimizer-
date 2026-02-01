@@ -36,4 +36,3 @@ Sangramjit Sarkar
 B.Tech Computer Science Engineering
 
 
-Do you want me to do that next?
